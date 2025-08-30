@@ -1,0 +1,342 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Deck</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>
+                <span style="color: var(--accent-yellow)">GAME</span>
+                <span style="color: var(--accent-orange)">DECK</span>
+            </h1>
+            <div class="header-buttons">
+                <button id="settingsBtn" class="action-btn settings-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button id="addCustomBtn" class="action-btn suggest-btn" title="Add Custom Card">
+                    <i class="fas fa-layer-group"></i>
+                </button>
+                <button id="openTemplatesBtn" class="action-btn" title="Browse Templates"><i class="fas fa-th-large"></i></button>
+            </div>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search games...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+    </header>
+
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>Display Settings</h2>
+                <button class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="settings-body">
+                <div class="reset-section">
+                    <button id="resetSettings" class="reset-btn">Reset All Settings</button>
+                    <button id="savePreset" class="preset-btn" disabled>Save as Preset (Coming Soon)</button>
+                </div>
+
+                <div class="settings-category">
+                    <h3>Layout Settings</h3>
+                    <div class="settings-section">
+                        <h4>Card Layout</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="cardLayout" value="compact">
+                                <span>Compact</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="cardLayout" value="comfortable">
+                                <span>Comfortable</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="cardLayout" value="expanded">
+                                <span>Expanded</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Header Display</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="headerDisplay" value="dropdown">
+                                <span>Only show on dropdown</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="headerDisplay" value="above">
+                                <span>Always show above card</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="headerDisplay" value="background">
+                                <span>Use as background</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="headerDisplay" value="hidden">
+                                <span>Hide all headers</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Card Border Style</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="cardBorder" value="rounded">
+                                <span>Rounded</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="cardBorder" value="square">
+                                <span>Square</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="cardBorder" value="minimal">
+                                <span>Minimal (no border)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>Appearance Settings</h3>
+                    <div class="settings-section">
+                        <h4>Theme</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="theme" value="light">
+                                <span>Light</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="theme" value="dark">
+                                <span>Dark</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="theme" value="system">
+                                <span>System</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Font Size</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="fontSize" value="small">
+                                <span>Small</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="fontSize" value="default">
+                                <span>Default</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="fontSize" value="large">
+                                <span>Large</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Link Style</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="linkDisplay" value="inline">
+                                <span>Inline list</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="linkDisplay" value="grid">
+                                <span>Button grid</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="linkDisplay" value="icons" disabled>
+                                <span>Icons only (Coming soon)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-category">
+                    <h3>Behavior Settings</h3>
+                    <div class="settings-section">
+                        <h4>Game Sorting</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="gameSorting" value="alphabetical">
+                                <span>Alphabetical (A-Z)</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="gameSorting" value="recent">
+                                <span>Most Recently Added</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="gameSorting" value="custom" disabled>
+                                <span>Custom (Coming soon)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Default Dropdown State</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="dropdownDefault" value="collapsed">
+                                <span>Collapsed</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="dropdownDefault" value="expanded">
+                                <span>Expanded</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h4>Animation Speed</h4>
+                        <div class="settings-options">
+                            <label class="setting-option">
+                                <input type="radio" name="animationSpeed" value="instant">
+                                <span>Instant</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="animationSpeed" value="smooth">
+                                <span>Smooth</span>
+                            </label>
+                            <label class="setting-option">
+                                <input type="radio" name="animationSpeed" value="slow">
+                                <span>Slow fade</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModal" class="modal">
+        <div class="modal-content suggest-content">
+            <div class="modal-header">
+                <h2>Add Custom Card</h2>
+                <button class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="customForm">
+                    <div class="form-group"><label>Game Title</label><input id="c_game" required></div>
+                    <div class="form-group"><label>Game Series</label><input id="c_series" required></div>
+                    <div class="form-group"><label>Icon URL</label><input id="c_icon" type="url" required></div>
+                    <div class="form-group"><label>Header URL (img/webm)</label><input id="c_header" type="url"></div>
+                    <div class="form-group">
+                        <label>Header Display</label>
+                        <select id="c_headerDisplay">
+                            <option value="dropdown">Show in dropdown</option>
+                            <option value="above">Show above card</option>
+                            <option value="background">Use as background</option>
+                        </select>
+                    </div>
+                    <div class="resources-section">
+                        <h3>Resource Links</h3>
+                        <div id="c_resources">
+                            <div class="resource-field-group">
+                                <h4>Resource 1</h4>
+                                <input class="c_res_title" placeholder="Guide Title" required>
+                                <input class="c_res_site" placeholder="Site Name" required>
+                                <input class="c_res_url" type="url" placeholder="URL" required>
+                            </div>
+                        </div>
+                        <button type="button" id="c_addRes" class="add-resource-btn"><i class="fas fa-plus"></i> Add Resource</button>
+                    </div>
+                    <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Save Card</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="templatesModal" class="modal">
+        <div class="modal-content suggest-content">
+            <div class="modal-header">
+                <h2>Templates & Suggestions</h2>
+                <button class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="templatesBody">
+                <div id="suggestTemplateSection">
+                    <div class="resources-section">
+                        <h3>Suggest a New Template</h3>
+                        <form id="suggestionForm" action="https://formspree.io/f/mpwpvrdl" method="POST" onsubmit="return packageSuggestion()">
+                            <div class="form-group">
+                                <label for="gameInput">Game Title</label>
+                                <input type="text" id="gameInput" name="game" required placeholder="e.g. Genshin Impact">
+                            </div>
+                            <div class="form-group">
+                                <label for="seriesInput">Game Series</label>
+                                <input type="text" id="seriesInput" name="series" required placeholder="e.g. HoYoVerse Series">
+                            </div>
+                            <div class="form-group">
+                                <label for="iconInput">Icon URL</label>
+                                <input type="url" id="iconInput" name="icon" required placeholder="Direct link to game icon image">
+                            </div>
+                            <div class="form-group">
+                                <label for="headerInput">Header Image/Video URL</label>
+                                <input type="url" id="headerInput" name="header" placeholder="Direct link to header media (optional)">
+                            </div>
+                            <div class="form-group">
+                                <label for="headerDisplayInput">Header Display Style</label>
+                                <select id="headerDisplayInput" name="headerDisplay">
+                                    <option value="dropdown">Show in dropdown</option>
+                                    <option value="above">Show above card</option>
+                                    <option value="background">Use as background</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="creditInput">Name for credit</label>
+                                <input type="text" id="creditInput" name="credit" placeholder="Your name or username to be credited">
+                            </div>
+                            <div class="form-group">
+                                <label for="emailInput">Your email (optional)</label>
+                                <input type="email" id="emailInput" name="email" placeholder="you@example.com">
+                            </div>
+                            <div class="resources-section">
+                                <h3>Resource Links</h3>
+                                <div id="resourceFields">
+                                    <div class="resource-field-group">
+                                        <h4>Resource 1</h4>
+                                        <input type="text" class="res-title" placeholder="Guide Title" required>
+                                        <input type="text" class="res-site" placeholder="Site Name" required>
+                                        <input type="url" class="res-url" placeholder="URL" required>
+                                    </div>
+                                </div>
+                                <button type="button" id="addResourceBtn" class="add-resource-btn">
+                                    <i class="fas fa-plus"></i> Add Another Resource
+                                </button>
+                            </div>
+                            <input type="hidden" name="json" id="jsonData">
+                            <p class="form-note">All suggestions are manually reviewed. If approved, you'll be credited using the name provided above.</p>
+                            <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Send Suggestion</button>
+                        </form>
+                    </div>
+                </div>
+                <div id="t_templatesContainer" class="templates-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-container">
+        <div class="series-dropdown-container">
+            <select id="seriesDropdown" class="series-dropdown">
+                <option value="all">All Series</option>
+            </select>
+        </div>
+    </div>
+
+    <main>
+        <div class="games-container" id="gamesContainer">
+            <!-- Game cards will be added dynamically -->
+        </div>
+    </main>
+    
+    <script type="module" src="script.js"></script>
+    <script src="sites.js"></script>
+</body>
+</html>

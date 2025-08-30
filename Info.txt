@@ -1,0 +1,6 @@
+Project Name: Game Deck
+Project Version Number: v35
+Project Description: A lightweight, browser-based deck of game resource cards with template browsing, custom card creation, search/filtering, and configurable display/settings. Persistent via LocalStorage, no build step required.
+
+Each Version Update:
+- See VersionHistory.txt for the complete version history provided by the user.
