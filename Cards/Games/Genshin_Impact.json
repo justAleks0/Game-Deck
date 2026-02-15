@@ -1,0 +1,22 @@
+{
+  "kind": "game",
+  "name": "Genshin Impact",
+  "image": "https://cdn2.steamgriddb.com/thumb/17ac85cc7b94b7e29577acb5f9b38aa7.jpg",
+  "studio": "HoYoVerse",
+  "year": 2020,
+  "instantOpenOnSingleTool": true,
+  "tools": [
+    {
+      "label": "Characters",
+      "href": "https://game8.co/games/Genshin-Impact/archives/296707"
+    },
+    {
+      "label": "Weapons",
+      "href": "https://game8.co/games/Genshin-Impact/archives/297497"
+    },
+    {
+      "label": "Tier List",
+      "href": "https://game8.co/games/Genshin-Impact/archives/297465"
+    }
+  ]
+}

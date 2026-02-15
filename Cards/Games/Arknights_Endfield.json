@@ -1,0 +1,34 @@
+{
+  "kind": "game",
+  "name": "Arknights: Endfield",
+  "image": "https://cdn2.steamgriddb.com/thumb/83d54de90c45accd18b3eb06e959f4c8.jpg",
+  "studio": "Custom",
+  "year": 2026,
+  "instantOpenOnSingleTool": true,
+  "tools": [
+    {
+      "label": "Characters",
+      "href": "https://www.prydwen.gg/arknights-endfield/characters"
+    },
+    {
+      "label": "Weapons",
+      "href": "https://www.prydwen.gg/arknights-endfield/weapons"
+    },
+    {
+      "label": "Tier List",
+      "href": "https://www.prydwen.gg/arknights-endfield/tier-list"
+    },
+    {
+      "label": "Team Tier List",
+      "href": "https://www.prydwen.gg/arknights-endfield/team-tier-list"
+    },
+    {
+      "label": "Team Builder Tool",
+      "href": "https://www.prydwen.gg/arknights-endfield/tools/team-builder/"
+    },
+    {
+      "label": "Advanced Team Builder Tool",
+      "href": "https://www.prydwen.gg/arknights-endfield/tools/advanced-team-builder/"
+    }
+  ]
+}

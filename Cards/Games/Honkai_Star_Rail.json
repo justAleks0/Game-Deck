@@ -1,0 +1,22 @@
+{
+  "kind": "game",
+  "name": "Honkai Star Rail",
+  "image": "https://cdn2.steamgriddb.com/thumb/14219e4acfc4c50d323a47c2a6994299.jpg",
+  "studio": "HoYoVerse",
+  "year": 2023,
+  "instantOpenOnSingleTool": true,
+  "tools": [
+    {
+      "label": "Characters",
+      "href": "https://www.prydwen.gg/star-rail/characters"
+    },
+    {
+      "label": "Light Cones",
+      "href": "https://www.prydwen.gg/star-rail/light-cones"
+    },
+    {
+      "label": "Tier List",
+      "href": "https://www.prydwen.gg/star-rail/tier-list"
+    }
+  ]
+}
