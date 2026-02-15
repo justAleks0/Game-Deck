@@ -1,0 +1,23 @@
+{
+  "kind": "game",
+  "name": "Fortnite",
+  "image": "https://cdn2.steamgriddb.com/thumb/43630bf866dd82076842a14c302d9de1.jpg",
+  "studio": "Epic Games",
+  "year": 2017,
+  "description": "",
+  "instantOpenOnSingleTool": false,
+  "tools": [
+    {
+      "label": "Item Shop",
+      "href": "https://www.fortnite.com/item-shop?lang=en-US"
+    },
+    {
+      "label": "Download",
+      "href": "https://www.fortnite.com/download"
+    },
+    {
+      "label": "News",
+      "href": "https://www.fortnite.com/news"
+    }
+  ]
+}
