@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="desktop-warning" class="desktop-warning hidden" role="alert">
+  <div class="desktop-warning-inner">
+    <div class="desktop-warning-text">
+      Desktop Warning: This website is currently made mainly for mobile use, not PC. Everything is still functional on desktop, but it may not look very good all the time. There is currently no plan to improve the PC UI until I’m 100% happy with the mobile version.
+    </div>
+    <button id="desktop-warning-dismiss" type="button" class="pill-btn desktop-warning-dismiss-btn">
+      Dismiss
+    </button>
+  </div>
+</div>
+<div id="app">
+  <div id="top-bar">
+    <div id="top-title">GAME DECK</div>
+    <div id="top-subtitle">00:00:00</div>
+  </div>
+
+  <div id="main-label-row" class="section-label-row">
+    <div id="main-label" class="section-label">Featured games</div>
+    <button id="main-reorder" type="button" class="pill-btn">Order</button>
+  </div>
+
+  <div id="main-layout">
+    <button id="prev" aria-label="Previous" class="nav-btn">‹</button>
+
+    <div id="carousel-wrap">
+      <div id="carousel" tabindex="0" aria-roledescription="carousel"></div>
+      <div id="position-rail-panel" aria-hidden="false">
+        <div id="position-rail" role="tablist" aria-label="Featured game position"></div>
+      </div>
+    </div>
+
+    <button id="next" aria-label="Next" class="nav-btn">›</button>
+
+    <div id="details" aria-live="polite">
+      <div id="title"></div>
+      <div id="meta"></div>
+    </div>
+  </div>
+
+  <div id="custom-section">
+    <div class="section-label-row">
+      <div class="section-label">Your custom shortcuts</div>
+      <button id="custom-reorder" type="button" class="pill-btn">Order</button>
+    </div>
+    <div id="custom-main-layout">
+      <button id="custom-prev" aria-label="Previous" class="nav-btn">‹</button>
+
+      <div id="custom-carousel-wrap">
+        <div id="custom-carousel" tabindex="0" aria-roledescription="carousel"></div>
+        <div id="custom-position-rail-panel" aria-hidden="false">
+          <div id="custom-position-rail" role="tablist" aria-label="Shortcut position"></div>
+        </div>
+      </div>
+
+      <button id="custom-next" aria-label="Next" class="nav-btn">›</button>
+    </div>
+  </div>
+
+  <div id="footer">
+    <div id="footer-left"></div>
+    <div id="footer-actions">
+      <button id="profile-export" type="button" class="pill-btn">Export</button>
+      <button id="profile-import" type="button" class="pill-btn">Import</button>
+    </div>
+    <div id="footer-right"></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Profile import/export modal (top-level, viewport-anchored) -->
+<div id="profile-overlay" aria-hidden="true">
+  <div id="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profile-title" tabindex="-1">
+    <button id="profile-close" type="button" aria-label="Close profile menu">✕</button>
+    <div id="profile-title">Profiles</div>
+    <div id="profile-subtitle">Export &amp; Import</div>
+
+    <div class="field">
+      <span class="field-label">Export profile</span>
+      <div class="share-code-row">
+        <textarea
+          id="profile-code-output"
+          readonly
+          placeholder="Export code will appear here"
+          rows="3"
+        ></textarea>
+        <button id="profile-copy" type="button" class="pill-btn">Copy</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">QR code</span>
+      <div id="profile-qr-container">
+        <img id="profile-qr" alt="Profile QR code" />
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Import profile</span>
+      <textarea
+        id="profile-code-input"
+        placeholder="Paste a profile code here to import"
+        rows="3"
+      ></textarea>
+    </div>
+
+    <div id="profile-actions">
+      <button id="profile-cancel" type="button" class="secondary-btn">Close</button>
+      <button id="profile-apply" type="button" class="primary-btn">Import profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reorder modal (for reordering carousels) -->
+<div id="reorder-overlay" aria-hidden="true">
+  <div id="reorder-panel" role="dialog" aria-modal="true" aria-labelledby="reorder-title" tabindex="-1">
+    <button id="reorder-close" type="button" aria-label="Close reorder menu">✕</button>
+    <div id="reorder-title"></div>
+    <div id="reorder-subtitle"></div>
+    <div id="reorder-list"></div>
+    <div id="reorder-actions">
+      <button id="reorder-cancel" type="button" class="secondary-btn">Cancel</button>
+      <button id="reorder-save" type="button" class="primary-btn">Save order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Game tools modal (top-level, viewport-anchored) -->
+<div id="tools-overlay" aria-hidden="true">
+  <div id="tools-panel" role="dialog" aria-modal="true" aria-labelledby="tools-title" tabindex="-1">
+    <button id="tools-edit" type="button" aria-label="Edit card">✎</button>
+    <button id="tools-close" type="button" aria-label="Close tools">✕</button>
+    <div id="tools-title"></div>
+    <div id="tools-subtitle">Game Tools</div>
+    <div id="tools-list"></div>
+  </div>
+</div>
+
+<!-- Choice/Confirm Modal (Generic) -->
+<div id="choice-overlay" aria-hidden="true">
+  <div id="choice-panel" role="dialog" aria-modal="true" aria-labelledby="choice-title" tabindex="-1">
+    <div id="choice-header">
+      <div id="choice-title"></div>
+    </div>
+    <div id="choice-message"></div>
+    <div id="choice-options"></div>
+  </div>
+</div>
+
+<!-- Custom shortcut create/edit modal (top-level, viewport-anchored) -->
+<div id="custom-create-overlay" aria-hidden="true">
+  <div id="custom-create-panel" role="dialog" aria-modal="true" aria-labelledby="custom-create-title" tabindex="-1">
+    <button id="custom-create-close" type="button" aria-label="Close editor">✕</button>
+
+    <div id="custom-create-header">
+      <div id="custom-create-title">New shortcut</div>
+      <div id="custom-editing-label">EDITING</div>
+    </div>
+
+    <button id="custom-import-code" type="button" class="pill-btn">Paste code</button>
+
+    <label class="field">
+      <div class="field-label-row">
+        <span class="field-label">Name</span>
+        <button id="custom-name-search" type="button" class="pill-btn">Search marketplace</button>
+      </div>
+      <input id="custom-name" type="text" autocomplete="off" placeholder="Shortcut name" />
+    </label>
+
+    <label class="field">
+      <span class="field-label">Cover image URL (optional)</span>
+      <input id="custom-image" type="url" autocomplete="off" placeholder="https://example.com/cover.jpg" />
+    </label>
+
+    <!-- Shortcut-only: single target URL -->
+    <label class="field shortcut-only">
+      <span class="field-label">Target URL</span>
+      <input id="custom-link" type="url" autocomplete="off" placeholder="https://link.to/shortcut" />
+    </label>
+
+    <!-- Game-only: multi-tool behavior + tools list -->
+    <div class="field field-toggle game-only">
+      <span class="field-label">Behavior</span>
+      <label class="toggle-inline">
+        <input id="custom-instant-open" type="checkbox" checked />
+        <span>Instant open when only one tool</span>
+      </label>
+    </div>
+
+    <div class="field game-only">
+      <div class="field-label-row">
+        <span class="field-label">Tools</span>
+        <button id="custom-add-tool" type="button" class="pill-btn">+ Add tool</button>
+      </div>
+      <div id="custom-tools-list"></div>
+    </div>
+
+    <label class="field">
+      <span class="field-label">Share code</span>
+      <div class="share-code-row">
+        <input
+          id="custom-share-code"
+          type="text"
+          autocomplete="off"
+          placeholder="Appears when editing or importing"
+          readonly
+        />
+        <button id="custom-copy-code" type="button" class="pill-btn">Copy code</button>
+      </div>
+    </label>
+
+    <div class="field" id="custom-qr-field">
+      <span class="field-label">QR code</span>
+      <div id="custom-qr-container">
+        <img id="custom-qr" alt="Shortcut QR code" />
+      </div>
+    </div>
+
+    <div id="custom-create-actions">
+      <button id="custom-delete" type="button" class="secondary-btn">Delete</button>
+      <button id="custom-cancel" type="button" class="secondary-btn">Cancel</button>
+      <button id="custom-save" type="button" class="primary-btn">Save shortcut</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
