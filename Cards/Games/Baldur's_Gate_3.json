@@ -1,0 +1,70 @@
+{
+  "kind": "game",
+  "name": "Baldur's Gate 3",
+  "image": "https://cdn2.steamgriddb.com/thumb/a8157a33fd9ce98aff39b78de8fb6133.jpg",
+  "studio": "Custom",
+  "year": 2026,
+  "instantOpenOnSingleTool": true,
+  "tools": [
+    {
+      "label": "Baldur's Gate 3 Wiki",
+      "href": "https://bg3.wiki/"
+    },
+    {
+      "label": "Companions",
+      "href": "https://bg3.wiki/wiki/Companions"
+    },
+    {
+      "label": "Origins",
+      "href": "https://bg3.wiki/wiki/Origins"
+    },
+    {
+      "label": "Races",
+      "href": "https://bg3.wiki/wiki/Races"
+    },
+    {
+      "label": "Classes",
+      "href": "https://bg3.wiki/wiki/Classes"
+    },
+    {
+      "label": "Spells",
+      "href": "https://bg3.wiki/wiki/Spells"
+    },
+    {
+      "label": "Feats",
+      "href": "https://bg3.wiki/wiki/Feats"
+    },
+    {
+      "label": "Backgrounds",
+      "href": "https://bg3.wiki/wiki/Backgrounds"
+    },
+    {
+      "label": "Abilities",
+      "href": "https://bg3.wiki/wiki/Abilities"
+    },
+    {
+      "label": "Items",
+      "href": "https://bg3.wiki/wiki/Items"
+    },
+    {
+      "label": "Weapons",
+      "href": "https://bg3.wiki/wiki/Weapons"
+    },
+    {
+      "label": "Locations",
+      "href": "https://bg3.wiki/wiki/List_of_locations"
+    },
+    {
+      "label": "Quests",
+      "href": "https://bg3.wiki/wiki/Quests"
+    },
+    {
+      "label": "Creature",
+      "href": "https://bg3.wiki/wiki/List_of_creature_types"
+    },
+    {
+      "label": "Morgana Evelyn's Honour Mode Party Guide",
+      "href": "https://drive.google.com/file/d/1iqPT3rGJ6-YFtMNot5GGkIVCYUS_hMjf/view"
+    }
+  ]
+}
