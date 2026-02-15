@@ -1,0 +1,19 @@
+{
+  "kind": "game",
+  "name": "Nikke: Goddess of Victory",
+  "image": "https://cdn2.steamgriddb.com/thumb/6125432a1d4dfa1f33dbffe6bb0b9a0e.jpg",
+  "studio": "SHIFT UP",
+  "year": 2022,
+  "description": "",
+  "instantOpenOnSingleTool": false,
+  "tools": [
+    {
+      "label": "Characters",
+      "href": "https://www.prydwen.gg/nikke/characters"
+    },
+    {
+      "label": "Tier List",
+      "href": "https://www.prydwen.gg/nikke/tier-list"
+    }
+  ]
+}
