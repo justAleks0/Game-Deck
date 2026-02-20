@@ -2,7 +2,6 @@
  Simple horizontal carousel for game posters.
  - Centered snap-based carousel
  - Touch drag + buttons
- - Keeps track of centered item and updates details panel
 */
 
 const BUTTON_SOUND_URLS = [
@@ -285,8 +284,6 @@ const appRoot = document.getElementById('app');
 const carousel = document.getElementById('carousel');
 const positionRail = document.getElementById('position-rail');
 const topSubtitle = document.getElementById('top-subtitle');
-const title = document.getElementById('title');
-const meta = document.getElementById('meta');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 
@@ -874,15 +871,7 @@ function updateCenter(){
     else c.classList.add('shrink');
   });
 
-  // Update details panel – regular games use FEATURED_GAMES; the last card is the "add" card
-  const g = FEATURED_GAMES[centerIndex];
-  if(g){
-    title.textContent = g.name;
-    meta.textContent = `${g.studio} • ${g.year}`;
-  }else{
-    title.textContent = 'Add custom game';
-    meta.textContent = '';
-  }
+  // Details panel removed – no-op
 
   // update nav button state
   prevBtn.disabled = centerIndex === 0;
