@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,17 +20,12 @@
     <button id="main-reorder" type="button" class="pill-btn">Order</button>
   </div>
 
-  <div id="main-layout">
-    <button id="prev" aria-label="Previous" class="nav-btn">‹</button>
-
-    <div id="carousel-wrap">
-      <div id="carousel" tabindex="0" aria-roledescription="carousel"></div>
-      <div id="position-rail-panel" aria-hidden="false">
-        <div id="position-rail" role="tablist" aria-label="Featured game position"></div>
-      </div>
+  <div id="main-layout" class="carousel-outer">
+    <button id="main-prev" type="button" class="nav-btn" aria-label="Previous">‹</button>
+    <div class="carousel-viewport">
+      <div id="main-grid" class="carousel-track" role="list"></div>
     </div>
-
-    <button id="next" aria-label="Next" class="nav-btn">›</button>
+    <button id="main-next" type="button" class="nav-btn" aria-label="Next">›</button>
   </div>
 
   <div id="custom-section">
@@ -38,17 +33,12 @@
       <div class="section-label">Your custom shortcuts</div>
       <button id="custom-reorder" type="button" class="pill-btn">Order</button>
     </div>
-    <div id="custom-main-layout">
-      <button id="custom-prev" aria-label="Previous" class="nav-btn">‹</button>
-
-      <div id="custom-carousel-wrap">
-        <div id="custom-carousel" tabindex="0" aria-roledescription="carousel"></div>
-        <div id="custom-position-rail-panel" aria-hidden="false">
-          <div id="custom-position-rail" role="tablist" aria-label="Shortcut position"></div>
-        </div>
+    <div id="custom-main-layout" class="carousel-outer">
+      <button id="custom-prev" type="button" class="nav-btn" aria-label="Previous">‹</button>
+      <div class="carousel-viewport">
+        <div id="custom-grid" class="carousel-track" role="list"></div>
       </div>
-
-      <button id="custom-next" aria-label="Next" class="nav-btn">›</button>
+      <button id="custom-next" type="button" class="nav-btn" aria-label="Next">›</button>
     </div>
   </div>
 

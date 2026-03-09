@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Game Deck – Card Maker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Card Maker – Wii theme (overrides/extensions) */
+    .card-maker-body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      min-height:100vh;
+    }
+
+    .cm-app{
+      width:100%;
+      max-width:960px;
+      max-height:calc(100vh - 32px);
+      background:linear-gradient(180deg, var(--wii-surface), var(--wii-surface-soft));
+      border-radius:16px;
+      border:2px solid var(--wii-border);
+      box-shadow:0 8px 32px var(--wii-channel-shadow);
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      overflow:hidden;
+    }
+
+    .cm-header{
+      padding:12px 16px 10px;
+      border-bottom:1px solid var(--wii-border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+      flex-wrap:wrap;
+    }
+
+    body[data-theme="dark"] .cm-header{
+      background:linear-gradient(180deg, var(--wii-surface), var(--wii-surface-soft));
+    }
+
+    .cm-back-btn{
+      flex-shrink:0;
+      text-decoration:none;
+      border-radius:10px;
+      border:1px solid var(--wii-border);
+      padding:6px 12px;
+      font-size:12px;
+      font-family:Nunito,system-ui,sans-serif;
+      font-weight:600;
+      color:var(--wii-text);
+      background:var(--wii-channel);
+      transition:border-color 120ms, color 120ms;
+    }
+    .cm-back-btn:hover{
+      border-color:var(--wii-accent);
+      color:var(--wii-accent);
+    }
+
+    .cm-title-block{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .cm-title{
+      font-family:Nunito,system-ui,sans-serif;
+      font-weight:700;
+      font-size:18px;
+      letter-spacing:.12em;
+      color:var(--wii-text);
+    }
+
+    .cm-subtitle{
+      font-size:12px;
+      color:var(--wii-text-muted);
+      letter-spacing:.08em;
+    }
+
+    .cm-type-toggle{
+      display:inline-flex;
+      border-radius:999px;
+      padding:3px;
+      background:var(--wii-channel);
+      border:1px solid var(--wii-border);
+      gap:2px;
+      box-shadow:0 1px 4px var(--wii-channel-shadow);
+    }
+
+    .cm-type-btn{
+      border:none;
+      border-radius:999px;
+      padding:5px 12px;
+      font-size:11px;
+      font-family:Nunito,system-ui,sans-serif;
+      font-weight:600;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      background:transparent;
+      color:var(--wii-text-muted);
+      cursor:pointer;
+      white-space:nowrap;
+      transition:background 120ms, color 120ms;
+    }
+
+    .cm-type-btn.active{
+      background:linear-gradient(180deg, var(--wii-primary-from), var(--wii-primary-to));
+      color:var(--wii-accent);
+      border:1px solid var(--wii-accent);
+    }
+
+    .cm-main{
+      display:grid;
+      grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+      gap:0;
+      min-height:0;
+    }
+
+    @media (max-width:720px){
+      .cm-app{ max-height:none; }
+      .cm-main{
+        grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+      }
+    }
+
+    .cm-panel{
+      padding:14px 16px 12px;
+      border-right:1px solid var(--wii-border);
+      background:linear-gradient(180deg, var(--wii-surface-soft), var(--wii-panel));
+      overflow:auto;
+    }
+
+    .cm-panel:last-child{ border-right:none; }
+
+    .cm-panel-title{
+      font-size:11px;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--wii-text-muted);
+      margin-bottom:8px;
+    }
+
+    .cm-fields{ display:flex; flex-direction:column; gap:10px; }
+    .cm-field{ display:flex; flex-direction:column; gap:4px; }
+    .cm-label-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .cm-label{ font-size:11px; font-weight:600; letter-spacing:.12em; color:var(--wii-text-muted); }
+    .cm-hint{ font-size:11px; color:var(--wii-text-muted); }
+
+    .cm-app input[type="text"],
+    .cm-app input[type="url"],
+    .cm-app input[type="number"],
+    .cm-app textarea{
+      width:100%;
+      border-radius:10px;
+      border:1px solid var(--wii-border);
+      background:var(--wii-channel);
+      color:var(--wii-text);
+      padding:8px 10px;
+      font-size:13px;
+      font-family:Nunito,system-ui,sans-serif;
+    }
+
+    .cm-app textarea{
+      min-height:64px;
+      resize:vertical;
+      font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;
+      font-size:12px;
+    }
+
+    .cm-app input::placeholder,
+    .cm-app textarea::placeholder{ color:var(--wii-text-muted); opacity:0.8; }
+
+    .cm-image-preview{
+      margin-top:8px;
+      max-width:160px;
+      max-height:90px;
+      border-radius:10px;
+      border:1px solid var(--wii-border);
+      object-fit:contain;
+    }
+
+    .cm-inline{ display:flex; gap:10px; align-items:center; }
+    .cm-inline > *{ flex:1 1 0; }
+
+    .cm-pill{
+      border-radius:10px;
+      padding:4px 8px;
+      border:1px solid var(--wii-border);
+      background:var(--wii-channel);
+      color:var(--wii-text-muted);
+      font-size:11px;
+      font-family:Nunito,system-ui,sans-serif;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .cm-pill input[type="checkbox"]{ width:16px; height:16px; accent-color:var(--wii-accent); }
+
+    .cm-tools-list{ display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+    .tool-controls{ display:flex; flex-direction:column; gap:4px; }
+    .cm-tool-row,.tool-row{
+      display:grid;
+      grid-template-columns:minmax(0,0.9fr) minmax(0,1.4fr) auto;
+      gap:6px;
+      align-items:center;
+    }
+
+    .cm-btn{
+      border-radius:10px;
+      border:1px solid var(--wii-border);
+      background:var(--wii-channel);
+      color:var(--wii-text);
+      padding:6px 12px;
+      font-size:12px;
+      font-family:Nunito,system-ui,sans-serif;
+      font-weight:600;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      transition:border-color 120ms, color 120ms, transform 100ms;
+      box-shadow:0 1px 4px var(--wii-channel-shadow);
+    }
+    .cm-btn:hover{ border-color:var(--wii-accent); color:var(--wii-accent); }
+    .cm-btn:active{ transform:scale(0.97); }
+    .cm-btn.small,.cm-btn-small{ padding:4px 8px; font-size:11px; }
+    .cm-btn.primary,.cm-btn-primary{
+      border-color:var(--wii-accent);
+      background:linear-gradient(180deg, var(--wii-primary-from), var(--wii-primary-to));
+      color:var(--wii-accent);
+    }
+    .cm-btn.primary:hover{ filter:brightness(1.05); }
+    .cm-btn.ghost,.cm-btn-ghost{ background:transparent; }
+    .cm-btn.danger,.cm-btn-danger{
+      border-color:#dc2626;
+      color:#fecaca;
+      background:rgba(239,68,68,0.15);
+    }
+
+    .cm-preview-box{
+      background:var(--wii-channel);
+      border-radius:10px;
+      border:1px solid var(--wii-border);
+      padding:10px;
+      font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;
+      font-size:12px;
+      color:var(--wii-text);
+      max-height:260px;
+      overflow:auto;
+      white-space:pre;
+    }
+
+    .cm-preview-meta{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; flex-wrap:wrap; }
+    .cm-chip-row{ display:flex; flex-wrap:wrap; gap:6px; }
+    .cm-chip{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--wii-border);
+      color:var(--wii-text-muted);
+    }
+    .cm-chip.accent{
+      border-color:var(--wii-accent);
+      color:var(--wii-accent);
+      background:var(--wii-accent-soft);
+    }
+
+    .cm-footer{
+      padding:10px 16px;
+      border-top:1px solid var(--wii-border);
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      justify-content:space-between;
+      background:linear-gradient(180deg, var(--wii-surface), var(--wii-surface-soft));
+    }
+
+    .cm-footer-left{ font-size:11px; color:var(--wii-text-muted); }
+    .cm-footer-right{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+
+    .cm-toast{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform:translateX(-50%) translateY(40px);
+      padding:10px 16px;
+      border-radius:12px;
+      background:var(--wii-surface);
+      border:1px solid var(--wii-border);
+      color:var(--wii-text);
+      font-size:12px;
+      font-weight:600;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity 160ms ease-out, transform 160ms ease-out;
+      z-index:10;
+      box-shadow:0 4px 16px var(--wii-channel-shadow);
+    }
+    .cm-toast.visible{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+    .cm-toast-link{ color:var(--wii-accent); text-decoration:underline; margin-left:4px; }
+
+    .cm-error{
+      font-size:11px;
+      color:#fecaca;
+      background:rgba(239,68,68,0.15);
+      border-radius:8px;
+      padding:6px 8px;
+      border:1px solid rgba(239,68,68,0.5);
+      margin-top:6px;
+    }
+
+    .github-integration-section{ display:none; }
+    .token-parts{
+      position:absolute;
+      left:-9999px;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+    }
+
+    /* Dark mode toggle in header */
+    .cm-dark-btn{
+      border-radius:10px;
+      border:1px solid var(--wii-border);
+      background:var(--wii-channel);
+      color:var(--wii-text);
+      padding:4px 8px;
+      font-size:14px;
+      cursor:pointer;
+      min-width:36px;
+    }
+  </style>
+</head>
+<body class="card-maker-body">
+<script>
+  (function(){
+    var k='gameDeckDarkThemeV1';
+    try{ if(localStorage.getItem(k)==='1') document.body.setAttribute('data-theme','dark'); }catch(e){}
+  })();
+</script>
+<div class="cm-app" role="application">
+  <header class="cm-header">
+    <a href="index.html" class="cm-back-btn cm-btn">← Back</a>
+    <div class="cm-title-block">
+      <div class="cm-title">Card Maker</div>
+      <div class="cm-subtitle">Build JSON cards for games & shortcuts</div>
+    </div>
+    <div class="cm-type-toggle" aria-label="Card type">
+      <button type="button" class="cm-type-btn active" data-type="game">Game</button>
+      <button type="button" class="cm-type-btn" data-type="shortcut">Shortcut</button>
+    </div>
+    <button type="button" class="cm-dark-btn" id="cm-dark-toggle" aria-label="Toggle dark mode">🌙</button>
+  </header>
+
+  <main class="cm-main">
+    <section class="cm-panel" aria-label="Card fields">
+      <div class="cm-panel-title">Card fields</div>
+      <div class="cm-fields" id="fields-root">
+        <div class="cm-field">
+          <div class="cm-label-row">
+            <label class="cm-label" for="name-input">Name</label>
+            <span class="cm-hint">Required</span>
+          </div>
+          <input id="name-input" type="text" placeholder="e.g. Genshin Impact or Daily Check-in" autocomplete="off" />
+        </div>
+
+        <div class="cm-field">
+          <label class="cm-label" for="image-input">Cover image URL</label>
+          <input id="image-input" type="url" placeholder="https://example.com/cover.jpg" autocomplete="off" />
+          <img id="image-preview" class="cm-image-preview" alt="Cover preview" style="display: none;" />
+        </div>
+
+        <div class="cm-field game-only">
+          <div class="cm-inline">
+            <div class="cm-field">
+              <label class="cm-label" for="studio-input">Studio</label>
+              <input id="studio-input" type="text" placeholder="HoYoVerse" autocomplete="off" />
+            </div>
+            <div class="cm-field">
+              <label class="cm-label" for="year-input">Year</label>
+              <input id="year-input" type="number" min="1970" max="9999" placeholder="2024" />
+            </div>
+          </div>
+        </div>
+
+        <div class="cm-field game-only">
+          <span class="cm-label">Buttons / tools</span>
+          <div class="cm-hint">Add one or more buttons that open links (tier lists, databases, etc.)</div>
+          <div class="cm-tools-list" id="tools-list"></div>
+          <button type="button" class="cm-btn cm-btn-small" id="add-tool-btn">+ Add button</button>
+          <label class="cm-pill" style="margin-top:6px;">
+            <input type="checkbox" id="instant-open-checkbox" checked />
+            Instant open when only one button
+          </label>
+        </div>
+
+        <div class="cm-field shortcut-only" style="display:none;">
+          <div class="cm-label-row">
+            <label class="cm-label" for="link-input">Target URL</label>
+            <span class="cm-hint">Required</span>
+          </div>
+          <input id="link-input" type="url" placeholder="https://link.to/shortcut" autocomplete="off" />
+        </div>
+
+        <div class="cm-field">
+          <div class="cm-label-row">
+            <label class="cm-label" for="description-input">Description (optional)</label>
+            <span class="cm-hint">Shown only in editors/marketplaces</span>
+          </div>
+          <textarea id="description-input" placeholder="Short description of what this card is for..."></textarea>
+        </div>
+
+        <div id="error-box" class="cm-error" style="display:none;"></div>
+
+        <div class="github-integration-section">
+          <div class="cm-field" style="margin-top:10px; padding-top:15px; border-top:1px solid var(--wii-border);">
+            <label class="cm-label">GitHub Integration</label>
+            <div class="cm-inline">
+              <input id="gh-token" type="text" placeholder="GitHub PAT" autocomplete="off" style="flex:2;" data-form-type="other" />
+              <button type="button" class="cm-btn cm-btn-primary" id="github-upload-btn">Upload</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cm-panel" aria-label="JSON preview">
+      <div class="cm-panel-title">JSON preview</div>
+      <div class="cm-preview-meta">
+        <div class="cm-chip-row">
+          <span class="cm-chip accent" id="preview-kind-chip">Game</span>
+          <span class="cm-chip" id="preview-name-chip">Unnamed</span>
+        </div>
+        <button type="button" class="cm-btn cm-btn-small cm-btn-ghost" id="copy-json-btn">Copy JSON</button>
+      </div>
+      <div class="cm-preview-box" id="preview-box">{}</div>
+    </section>
+  </main>
+
+  <footer class="cm-footer">
+    <div class="cm-footer-left">
+      <span>Exports a single JSON object for each card.</span>
+    </div>
+    <div class="cm-footer-right">
+      <input type="file" id="import-json-input" accept=".json,application/json" style="display:none" />
+      <button type="button" class="cm-btn cm-btn-ghost" id="import-json-btn">Import JSON</button>
+      <button type="button" class="cm-btn cm-btn-ghost" id="reset-btn">Reset</button>
+      <button type="button" class="cm-btn cm-btn-ghost" id="download-btn" title="Fallback when upload doesn't work">Download (fallback)</button>
+      <button type="button" class="cm-btn cm-btn-primary" id="footer-upload-btn">Upload</button>
+    </div>
+  </footer>
+
+  <div class="cm-toast" id="toast"></div>
+
+  <div class="token-parts" aria-hidden="true">
+    <span class="token-part">ghp_mEyTgovpSDx2</span>
+    <span class="token-part">hILEeh7wivFX</span>
+    <span class="token-part">W02zXR0Sp2</span>
+    <span class="token-part">MD</span>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const typeButtons = Array.from(document.querySelectorAll('.cm-type-btn'));
+    const gameOnlyEls = document.querySelectorAll('.game-only');
+    const shortcutOnlyEls = document.querySelectorAll('.shortcut-only');
+
+    const nameInput = document.getElementById('name-input');
+    const imageInput = document.getElementById('image-input');
+    const studioInput = document.getElementById('studio-input');
+    const yearInput = document.getElementById('year-input');
+    const linkInput = document.getElementById('link-input');
+    const descriptionInput = document.getElementById('description-input');
+    const instantOpenCheckbox = document.getElementById('instant-open-checkbox');
+    const toolsListEl = document.getElementById('tools-list');
+    const addToolBtn = document.getElementById('add-tool-btn');
+
+    const previewBox = document.getElementById('preview-box');
+    const previewKindChip = document.getElementById('preview-kind-chip');
+    const previewNameChip = document.getElementById('preview-name-chip');
+
+    const copyJsonBtn = document.getElementById('copy-json-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const importJsonBtn = document.getElementById('import-json-btn');
+    const importJsonInput = document.getElementById('import-json-input');
+    const errorBox = document.getElementById('error-box');
+    const toastEl = document.getElementById('toast');
+
+    let currentType = 'game';
+
+    function showToast(text, linkUrl){
+      if(!toastEl) return;
+      if (linkUrl) {
+        toastEl.innerHTML = text + ' <a href="' + linkUrl + '" target="_blank" rel="noopener" class="toast-link">View file</a>';
+      } else {
+        toastEl.textContent = text;
+      }
+      toastEl.classList.add('visible');
+      setTimeout(()=>toastEl.classList.remove('visible'), 2200);
+    }
+
+    function setError(message){
+      if(!errorBox) return;
+      if(message){
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+      }else{
+        errorBox.textContent = '';
+        errorBox.style.display = 'none';
+      }
+    }
+
+    function sanitizeFilename(name){
+      return (name || 'card')
+        .toString()
+        .trim()
+        .replace(/[\\\/:*?"<>|]+/g,'')
+        .replace(/\s+/g,'_')
+        .slice(0,64) || 'card';
+    }
+
+    function setType(type){
+      currentType = type === 'shortcut' ? 'shortcut' : 'game';
+      typeButtons.forEach(btn=>{
+        btn.classList.toggle('active', btn.dataset.type === currentType);
+      });
+      gameOnlyEls.forEach(el=>{
+        el.style.display = currentType === 'game' ? '' : 'none';
+      });
+      shortcutOnlyEls.forEach(el=>{
+        el.style.display = currentType === 'shortcut' ? '' : 'none';
+      });
+      previewKindChip.textContent = currentType === 'game' ? 'Game' : 'Shortcut';
+      updatePreview();
+    }
+
+    function createToolRow(labelValue = '', hrefValue = ''){
+      const row = document.createElement('div');
+      row.className = 'tool-row';
+      row.innerHTML = `
+        <input type="text" class="tool-label" placeholder="Button label (e.g. Tier List)" />
+        <input type="url" class="tool-href" placeholder="https://link.to/tool" />
+        <div class="tool-controls">
+          <button type="button" class="cm-btn cm-btn-small cm-btn-ghost move-up">▲</button>
+          <button type="button" class="cm-btn cm-btn-small cm-btn-danger remove">✕</button>
+        </div>
+      `;
+      const labelInput = row.querySelector('.tool-label');
+      const hrefInput = row.querySelector('.tool-href');
+      const moveUpBtn = row.querySelector('.move-up');
+      const removeBtn = row.querySelector('.remove');
+
+      labelInput.value = labelValue;
+      hrefInput.value = hrefValue;
+
+      moveUpBtn.addEventListener('click', ()=>{
+        const siblings = Array.from(toolsListEl.querySelectorAll('.tool-row'));
+        const idx = siblings.indexOf(row);
+        if(idx > 0){
+          toolsListEl.insertBefore(row, siblings[idx - 1]);
+        }
+      });
+
+      removeBtn.addEventListener('click', ()=>{
+        row.remove();
+        if(!toolsListEl.querySelector('.tool-row')){
+          addToolRow(); // keep at least one row for usability
+        }
+        updatePreview();
+      });
+
+      labelInput.addEventListener('input', updatePreview);
+      hrefInput.addEventListener('input', updatePreview);
+
+      return row;
+    }
+
+    function addToolRow(label='', href=''){
+      const row = createToolRow(label, href);
+      toolsListEl.appendChild(row);
+    }
+
+    function readGamePayload(){
+      const name = (nameInput.value || '').trim();
+      const image = (imageInput.value || '').trim();
+      const studio = (studioInput.value || '').trim() || 'Custom';
+      const yearRaw = (yearInput.value || '').trim();
+      const year = yearRaw ? Number(yearRaw) : new Date().getFullYear();
+      const description = (descriptionInput.value || '').trim();
+      const instantOpen = !!instantOpenCheckbox.checked;
+
+      const tools = [];
+      const rows = toolsListEl.querySelectorAll('.tool-row');
+      rows.forEach(row=>{
+        const labelEl = row.querySelector('.tool-label');
+        const hrefEl = row.querySelector('.tool-href');
+        const label = (labelEl.value || '').trim();
+        const href = (hrefEl.value || '').trim();
+        if(label){
+          tools.push({ label, href });
+        }
+      });
+
+      return {
+        kind: 'game',
+        name,
+        image,
+        studio,
+        year,
+        description,
+        instantOpenOnSingleTool: instantOpen,
+        tools
+      };
+    }
+
+    function readShortcutPayload(){
+      const name = (nameInput.value || '').trim();
+      const image = (imageInput.value || '').trim();
+      const link = (linkInput.value || '').trim();
+      const description = (descriptionInput.value || '').trim();
+
+      return {
+        kind: 'shortcut',
+        name,
+        image,
+        link,
+        description
+      };
+    }
+
+    function buildPayload(){
+      return currentType === 'game' ? readGamePayload() : readShortcutPayload();
+    }
+
+    function saveToLocal() {
+      const data = buildPayload();
+      localStorage.setItem('card_maker_draft', JSON.stringify(data));
+    }
+
+    function updatePreview(){
+      const payload = buildPayload();
+      previewNameChip.textContent = payload.name || 'Unnamed';
+      previewBox.textContent = JSON.stringify(payload, null, 2);
+      setError('');
+
+      const imgPreview = document.getElementById('image-preview');
+      if (imageInput.value.trim()) {
+        imgPreview.src = imageInput.value;
+        imgPreview.style.display = 'block';
+      } else {
+        imgPreview.style.display = 'none';
+      }
+
+      saveToLocal();
+    }
+
+    function validate(){
+      const payload = buildPayload();
+      if(!payload.name){
+        setError('Name is required.');
+        return false;
+      }
+      if(payload.kind === 'shortcut' && !payload.link){
+        setError('Target URL is required for shortcuts.');
+        return false;
+      }
+      if(payload.kind === 'game'){
+        const tools = Array.isArray(payload.tools) ? payload.tools : [];
+        if(tools.length === 0){
+          setError('Add at least one button for a game card.');
+          return false;
+        }
+      }
+      setError('');
+      return true;
+    }
+
+    // --- GitHub Integration ---
+
+    if (sessionStorage.getItem('gh_token')) {
+      document.getElementById('gh-token').value = sessionStorage.getItem('gh_token');
+    }
+
+    async function uploadToGitHub() {
+      const token = document.getElementById('gh-token').value.trim();
+      const payload = buildPayload();
+
+      if (!token) {
+        setError("Please provide a GitHub Personal Access Token.");
+        return;
+      }
+      if (!validate()) return;
+
+      sessionStorage.setItem('gh_token', token);
+
+      const folder = payload.kind === 'game' ? 'Games' : 'Shortcuts';
+      const fileName = sanitizeFilename(payload.name) + '.json';
+      const repoOwner = "justAleks0";
+      const repoName = "Game-Deck";
+      const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/Cards/${folder}/${fileName}`;
+
+      showToast("Connecting to GitHub...");
+
+      try {
+        let sha = null;
+        const checkRes = await fetch(apiUrl, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (checkRes.ok) {
+          const existingData = await checkRes.json();
+          sha = existingData.sha;
+        }
+
+        const jsonString = JSON.stringify(payload, null, 2);
+        const content = btoa(unescape(encodeURIComponent(jsonString)));
+
+        const body = {
+          message: `Card Maker: ${sha ? 'Update' : 'Create'} ${payload.name}`,
+          content: content,
+          sha: sha
+        };
+
+        const uploadRes = await fetch(apiUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (uploadRes.ok) {
+          const viewUrl = `https://github.com/justAleks0/Game-Deck/blob/main/Cards/${folder}/${fileName}`;
+          showToast("Uploaded successfully! ", viewUrl);
+        } else {
+          const errJson = await uploadRes.json();
+          setError(`GitHub Error: ${errJson.message}`);
+        }
+      } catch (err) {
+        setError(`Network Error: ${err.message}`);
+      }
+    }
+
+    document.getElementById('github-upload-btn').addEventListener('click', uploadToGitHub);
+    document.getElementById('footer-upload-btn').addEventListener('click', uploadToGitHub);
+
+    function assembleToken(silent) {
+      const parts = document.querySelectorAll('.token-part');
+      let fullToken = "";
+
+      parts.forEach(part => {
+        fullToken += part.textContent.trim();
+      });
+
+      const tokenInput = document.getElementById('gh-token');
+      if (tokenInput) {
+        tokenInput.value = fullToken;
+        sessionStorage.setItem('gh_token', fullToken);
+        if (!silent) showToast("Token assembled");
+      }
+    }
+
+    typeButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        setType(btn.dataset.type);
+      });
+    });
+
+    [nameInput, imageInput, studioInput, yearInput, linkInput, descriptionInput, instantOpenCheckbox]
+      .forEach(el=>{
+        if(!el) return;
+        const evt = el.type === 'checkbox' ? 'change' : 'input';
+        el.addEventListener(evt, updatePreview);
+      });
+
+    if(addToolBtn){
+      addToolBtn.addEventListener('click', ()=>{
+        addToolRow();
+        updatePreview();
+      });
+    }
+
+    if(copyJsonBtn){
+      copyJsonBtn.addEventListener('click', ()=>{
+        if(!validate()) return;
+        const text = previewBox.textContent || '';
+        if(!text.trim()) return;
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(()=>{
+            showToast('JSON copied');
+          }).catch(()=>{
+            showToast('Copy failed');
+          });
+        }else{
+          showToast('Clipboard API not available');
+        }
+      });
+    }
+
+    if(downloadBtn){
+      downloadBtn.addEventListener('click', ()=>{
+        if(!validate()) return;
+        const payload = buildPayload();
+        const json = JSON.stringify(payload, null, 2);
+        const blob = new Blob([json], { type:'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const safeName = sanitizeFilename(payload.name || (payload.kind === 'game' ? 'game' : 'shortcut'));
+        a.href = url;
+        a.download = safeName + '.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url), 1000);
+        showToast('Download started');
+      });
+    }
+
+    if(resetBtn){
+      resetBtn.addEventListener('click', ()=>{
+        nameInput.value = '';
+        imageInput.value = '';
+        studioInput.value = '';
+        yearInput.value = '';
+        linkInput.value = '';
+        descriptionInput.value = '';
+        instantOpenCheckbox.checked = true;
+        toolsListEl.innerHTML = '';
+        addToolRow();
+        setError('');
+        updatePreview();
+        showToast('Form reset');
+      });
+    }
+
+    if(importJsonBtn && importJsonInput){
+      importJsonBtn.addEventListener('click', ()=> importJsonInput.click());
+      importJsonInput.addEventListener('change', ()=>{
+        const file = importJsonInput.files && importJsonInput.files[0];
+        if(file) {
+          importFromJsonFile(file);
+          importJsonInput.value = '';
+        }
+      });
+    }
+
+    function applyCardData(data) {
+      if (!data || typeof data !== 'object') return;
+      setType(data.kind === 'shortcut' ? 'shortcut' : 'game');
+      nameInput.value = data.name || '';
+      imageInput.value = data.image || '';
+      descriptionInput.value = data.description || '';
+      if (data.kind === 'game') {
+        studioInput.value = data.studio || '';
+        yearInput.value = data.year !== undefined ? String(data.year) : '';
+        instantOpenCheckbox.checked = data.instantOpenOnSingleTool !== false;
+        toolsListEl.innerHTML = '';
+        const tools = Array.isArray(data.tools) ? data.tools : [];
+        tools.forEach(t => addToolRow(t.label || '', t.href || ''));
+        if (!tools.length) addToolRow();
+      } else {
+        linkInput.value = data.link || '';
+      }
+      updatePreview();
+    }
+
+    function loadFromLocal() {
+      const saved = localStorage.getItem('card_maker_draft');
+      if (!saved) {
+        addToolRow();
+        updatePreview();
+        return;
+      }
+      let data;
+      try {
+        data = JSON.parse(saved);
+      } catch (e) {
+        addToolRow();
+        updatePreview();
+        return;
+      }
+      applyCardData(data);
+    }
+
+    function importFromJsonFile(file) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        let data;
+        try {
+          data = JSON.parse(reader.result);
+        } catch (e) {
+          setError('Invalid JSON in file.');
+          showToast('Import failed: invalid JSON');
+          return;
+        }
+        if (!data.kind || (data.kind !== 'game' && data.kind !== 'shortcut')) {
+          setError('JSON must be a game or shortcut card (has "kind": "game" or "shortcut").');
+          showToast('Import failed: not a card JSON');
+          return;
+        }
+        applyCardData(data);
+        setError('');
+        showToast('Imported: ' + (data.name || 'card'));
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    // Dark mode toggle (syncs with main app)
+    (function(){
+      var k='gameDeckDarkThemeV1';
+      var btn=document.getElementById('cm-dark-toggle');
+      if(!btn) return;
+      function updateIcon(){
+        var dark=document.body.getAttribute('data-theme')==='dark';
+        btn.textContent=dark?'☀':'🌙';
+        btn.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode');
+      }
+      updateIcon();
+      btn.addEventListener('click',function(){
+        var dark=document.body.getAttribute('data-theme')==='dark';
+        if(dark){
+          document.body.removeAttribute('data-theme');
+        }else{
+          document.body.setAttribute('data-theme','dark');
+        }
+        try{ localStorage.setItem(k,dark?'0':'1'); }catch(e){}
+        updateIcon();
+      });
+    })();
+
+    // initial state: restore draft or show empty form
+    loadFromLocal();
+
+    // Auto-fill GitHub field from token parts 1 second after page load
+    setTimeout(function () {
+      assembleToken(true);
+    }, 1000);
+  })();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 /*
- Simple horizontal carousel for game posters.
- - Centered snap-based carousel
- - Touch drag + buttons
+ Game Deck - Wii Channels style
+ - Grid layout for games and shortcuts
+ - Direct click to open tools or activate shortcut
 */
 
 const BUTTON_SOUND_URLS = [
@@ -281,17 +281,19 @@ function updateClock(){
 }
 
 const appRoot = document.getElementById('app');
-const carousel = document.getElementById('carousel');
-const positionRail = document.getElementById('position-rail');
+const mainGrid = document.getElementById('main-grid');
+const mainViewport = document.querySelector('#main-layout .carousel-viewport');
+const mainPrevBtn = document.getElementById('main-prev');
+const mainNextBtn = document.getElementById('main-next');
 const topSubtitle = document.getElementById('top-subtitle');
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
 
-const customCarousel = document.getElementById('custom-carousel');
-const customPositionRail = document.getElementById('custom-position-rail');
-const customEmpty = document.getElementById('custom-empty');
+const customGrid = document.getElementById('custom-grid');
+const customViewport = document.querySelector('#custom-main-layout .carousel-viewport');
 const customPrevBtn = document.getElementById('custom-prev');
 const customNextBtn = document.getElementById('custom-next');
+
+let mainCarouselIndex = 0;
+let customCarouselIndex = 0;
 
 const toolsOverlay = document.getElementById('tools-overlay');
 const toolsPanel = document.getElementById('tools-panel');
@@ -400,12 +402,6 @@ function unlockScroll(){
   }
 }
 
-let cards = [];
-let centerIndex = 0;
-let railNodes = [];
-let customCards = [];
-let customCenterIndex = 0;
-let customRailNodes = [];
 let toolsOpen = false;
 let customCreateOpen = false;
 let reorderOpen = false;
@@ -423,6 +419,7 @@ function createCard(game, idx){
   const el = document.createElement('div');
   el.className = 'card';
   el.dataset.index = idx;
+  el.tabIndex = 0;
 
   const isCustomMain = CUSTOM_MAIN_GAMES.includes(game);
 
@@ -464,16 +461,19 @@ function createCard(game, idx){
     ` : ``}
   `;
 
-  // clicking a card: if centered, open tools; otherwise center it
+  // click: open tools directly (grid layout)
   el.addEventListener('click', ()=>{
     if(longPressTriggered){
       longPressTriggered = false;
       return;
     }
-    if(idx === centerIndex){
+    openToolsForGame(idx);
+  });
+
+  el.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
       openToolsForGame(idx);
-    }else{
-      scrollToIndex(idx);
     }
   });
 
@@ -585,18 +585,17 @@ function openTools(game){
       if(type === 'game'){
         if(typeof index === 'number' && index >= 0 && CUSTOM_MAIN_GAMES[index]){
           exportCardAsJson('game', CUSTOM_MAIN_GAMES[index]);
-        }else if(FEATURED_GAMES[centerIndex]){
-          // Fallback: featured game at center
-          exportCardAsJson('game', FEATURED_GAMES[centerIndex]);
+        }else if(toolsContext && typeof toolsContext.index === 'number' && CUSTOM_MAIN_GAMES[toolsContext.index]){
+          exportCardAsJson('game', CUSTOM_MAIN_GAMES[toolsContext.index]);
         }else{
           showToast('No game card found to export');
         }
       }else if(type === 'shortcut'){
         if(typeof index === 'number' && index >= 0 && CUSTOM_GAMES[index]){
           exportCardAsJson('shortcut', CUSTOM_GAMES[index]);
-        }else if(CUSTOM_GAMES[customCenterIndex]){
+        }else if(toolsContext && toolsContext.type === 'shortcut' && CUSTOM_GAMES[toolsContext.index]){
           // Fallback: centered shortcut
-          exportCardAsJson('shortcut', CUSTOM_GAMES[customCenterIndex]);
+          exportCardAsJson('shortcut', CUSTOM_GAMES[toolsContext.index]);
         }else{
           showToast('No shortcut card found to export');
         }
@@ -695,143 +694,120 @@ function hideTools(){
   unlockScroll();
 }
 
-function buildPositionRail(){
-  if(!positionRail) return;
-  positionRail.innerHTML = '';
-  railNodes = [];
+/** Scroll viewport so the given card is centered; camera follows focus */
+function scrollToCenterCard(viewport, card){
+  if(!viewport || !card || !viewport.contains(card)) return;
+  const track = card.closest('.carousel-track');
+  if(!track) return;
+  const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+  const viewportWidth = viewport.clientWidth;
+  const scrollLeft = Math.max(0, cardCenter - viewportWidth / 2);
+  viewport.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+}
 
+function setupCarouselFollowFocus(viewport, getGrid, updateCenter, setIndex){
+  if(!viewport || !getGrid) return;
+  viewport.addEventListener('focusin', (e)=>{
+    const card = e.target.closest ? e.target.closest('.card') : null;
+    if(!card || !viewport.contains(card)) return;
+    scrollToCenterCard(viewport, card);
+    const grid = getGrid();
+    if(grid){
+      const cards = grid.querySelectorAll('.card');
+      const idx = Array.from(cards).indexOf(card);
+      if(idx >= 0 && setIndex) setIndex(idx);
+    }
+    updateCenter();
+  });
+}
+
+function updateMainCarouselCenter(){
+  if(!mainViewport || !mainGrid) return;
+  const cards = mainGrid.querySelectorAll('.card');
   if(!cards.length) return;
-
-  // One dot per card, including the "add custom game" card
-  cards.forEach((card, idx)=>{
-    const node = document.createElement('button');
-    node.type = 'button';
-    node.className = 'rail-node';
-    node.setAttribute('role','tab');
-
-    const labelSource =
-      idx < FEATURED_GAMES.length
-        ? FEATURED_GAMES[idx]?.name || `Slot ${idx + 1}`
-        : 'Add custom game';
-
-    node.setAttribute('aria-label', labelSource);
-    node.setAttribute('aria-selected', idx === centerIndex ? 'true' : 'false');
-    node.dataset.index = idx;
-    node.addEventListener('click', ()=>{
-      scrollToIndex(idx);
-    });
-    const outer = document.createElement('span');
-    outer.className = 'rail-node-outer';
-    const inner = document.createElement('span');
-    inner.className = 'rail-node-inner';
-    outer.appendChild(inner);
-    node.appendChild(outer);
-    positionRail.appendChild(node);
-    railNodes.push(node);
+  const vpCenter = mainViewport.scrollLeft + mainViewport.clientWidth / 2;
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  cards.forEach((c, i)=>{
+    const cardCenter = c.offsetLeft + c.offsetWidth / 2;
+    const d = Math.abs(cardCenter - vpCenter);
+    if(d < bestDist){ bestDist = d; bestIdx = i; }
   });
-
-  updateRailActive();
-}
-
-function updateRailActive(){
-  if(!railNodes.length) return;
-  railNodes.forEach((node, idx)=>{
-    const active = idx === centerIndex;
-    node.classList.toggle('active', active);
-    node.setAttribute('aria-selected', active ? 'true' : 'false');
+  mainCarouselIndex = bestIdx;
+  cards.forEach((c, i)=>{
+    c.classList.toggle('center', i === bestIdx);
   });
 }
 
-function buildCustomPositionRail(){
-  if(!customPositionRail) return;
-  customPositionRail.innerHTML = '';
-  customRailNodes = [];
-
-  if(!customCards.length) return;
-
-  // One dot per card, including the "add shortcut" card
-  customCards.forEach((card, idx)=>{
-    const node = document.createElement('button');
-    node.type = 'button';
-    node.className = 'rail-node';
-    node.setAttribute('role','tab');
-
-    const labelSource =
-      idx < CUSTOM_GAMES.length
-        ? CUSTOM_GAMES[idx]?.name || `Shortcut ${idx + 1}`
-        : 'Add shortcut';
-
-    node.setAttribute('aria-label', labelSource);
-    node.setAttribute('aria-selected', idx === customCenterIndex ? 'true' : 'false');
-    node.dataset.index = idx;
-    node.addEventListener('click', ()=>{
-      scrollCustomToIndex(idx);
-    });
-    const outer = document.createElement('span');
-    outer.className = 'rail-node-outer';
-    const inner = document.createElement('span');
-    inner.className = 'rail-node-inner';
-    outer.appendChild(inner);
-    node.appendChild(outer);
-    customPositionRail.appendChild(node);
-    customRailNodes.push(node);
+function updateCustomCarouselCenter(){
+  if(!customViewport || !customGrid) return;
+  const cards = customGrid.querySelectorAll('.card');
+  if(!cards.length) return;
+  const vpCenter = customViewport.scrollLeft + customViewport.clientWidth / 2;
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  cards.forEach((c, i)=>{
+    const cardCenter = c.offsetLeft + c.offsetWidth / 2;
+    const d = Math.abs(cardCenter - vpCenter);
+    if(d < bestDist){ bestDist = d; bestIdx = i; }
   });
-
-  updateCustomRailActive();
+  customCarouselIndex = bestIdx;
+  cards.forEach((c, i)=>{
+    c.classList.toggle('center', i === bestIdx);
+  });
 }
 
-function updateCustomRailActive(){
-  if(!customRailNodes.length) return;
-  customRailNodes.forEach((node, idx)=>{
-    const active = idx === customCenterIndex;
-    node.classList.toggle('active', active);
-    node.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
+function scrollMainToIndex(i){
+  if(!mainViewport || !mainGrid) return;
+  const cards = mainGrid.querySelectorAll('.card');
+  const target = cards[i];
+  if(!target) return;
+  const targetLeft = target.offsetLeft;
+  const targetWidth = target.offsetWidth;
+  const viewportWidth = mainViewport.clientWidth;
+  const scrollLeft = Math.max(0, targetLeft - (viewportWidth / 2) + (targetWidth / 2));
+  mainViewport.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  mainCarouselIndex = i;
+  cards.forEach((c, idx)=> c.classList.toggle('center', idx === i));
+}
+
+function scrollCustomToIndex(i){
+  if(!customViewport || !customGrid) return;
+  const cards = customGrid.querySelectorAll('.card');
+  const target = cards[i];
+  if(!target) return;
+  const targetLeft = target.offsetLeft;
+  const targetWidth = target.offsetWidth;
+  const viewportWidth = customViewport.clientWidth;
+  const scrollLeft = Math.max(0, targetLeft - (viewportWidth / 2) + (targetWidth / 2));
+  customViewport.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  customCarouselIndex = i;
+  cards.forEach((c, idx)=> c.classList.toggle('center', idx === i));
 }
 
 function renderFeaturedGames(){
-  if(!carousel) return;
-  carousel.innerHTML = '';
-  cards = [];
+  if(!mainGrid) return;
+  mainGrid.innerHTML = '';
 
-  // left padding so first card can center
-  const padLeft = document.createElement('div');
-  padLeft.style.flex = '0 0 12%';
-  padLeft.style.height = '1px';
-  carousel.appendChild(padLeft);
-
-  // real game cards (built from FEATURED_GAMES = base + custom main games)
   FEATURED_GAMES.forEach((g, i)=>{
     const c = createCard(g, i);
-    carousel.appendChild(c);
-    cards.push(c);
+    mainGrid.appendChild(c);
   });
 
-  // "add custom game" full card at the end of the carousel
   const addGameCard = document.createElement('button');
   addGameCard.type = 'button';
   addGameCard.className = 'card';
   addGameCard.setAttribute('aria-label','Add custom game');
-  addGameCard.dataset.index = String(cards.length);
   addGameCard.innerHTML = `
     <div class="card-label" style="width:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">+</div>
   `;
   addGameCard.addEventListener('click', handleAddCustomMainGame);
-  carousel.appendChild(addGameCard);
-  cards.push(addGameCard);
+  mainGrid.appendChild(addGameCard);
 
-  // right padding so last card can center
-  const padRight = document.createElement('div');
-  padRight.style.flex = '0 0 12%';
-  padRight.style.height = '1px';
-  carousel.appendChild(padRight);
-
-  buildPositionRail();
-
-  if(cards.length){
-    centerIndex = Math.min(centerIndex, cards.length - 1);
-    requestAnimationFrame(()=> scrollToIndex(centerIndex || 0, false));
-  }
+  mainCarouselIndex = 0;
+  requestAnimationFrame(()=>{
+    setTimeout(updateMainCarouselCenter, 50);
+  });
 }
 
 function mount(){
@@ -841,61 +817,9 @@ function mount(){
   renderCustomGames();
 }
 
-function scrollToIndex(i, smooth=true){
-  const target = cards[i];
-  if(!target) return;
-  const rect = target.getBoundingClientRect();
-  const wrapRect = carousel.getBoundingClientRect();
-  const offset = (rect.left + rect.right)/2 - (wrapRect.left + wrapRect.right)/2;
-  carousel.scrollBy({left: offset, behavior: smooth ? 'smooth' : 'auto'});
-  setTimeout(()=> updateCenter(), smooth ? 260 : 0);
-}
-
-function updateCenter(){
-  if(!cards.length) return;
-  const wrapRect = carousel.getBoundingClientRect();
-  const centerX = (wrapRect.left + wrapRect.right) / 2;
-  let best = {idx:0,dist:Infinity};
-  cards.forEach((c, i)=>{
-    const r = c.getBoundingClientRect();
-    const cx = (r.left + r.right)/2;
-    const d = Math.abs(cx - centerX);
-    if(d < best.dist){ best = {idx:i,dist:d}; }
-    c.classList.remove('center','shrink');
-  });
-  centerIndex = best.idx;
-
-  // apply classes: center and shrink for others
-  cards.forEach((c,i)=>{
-    if(i === centerIndex) c.classList.add('center');
-    else c.classList.add('shrink');
-  });
-
-  // Details panel removed – no-op
-
-  // update nav button state
-  prevBtn.disabled = centerIndex === 0;
-  nextBtn.disabled = centerIndex === cards.length - 1;
-
-  updateRailActive();
-}
-
 function renderCustomGames(){
-  if(!customCarousel) return;
-  customCarousel.innerHTML = '';
-  customCards = [];
-
-  if(CUSTOM_GAMES.length === 0){
-    if(customEmpty) customEmpty.style.display = 'block';
-  }else{
-    if(customEmpty) customEmpty.style.display = 'none';
-  }
-
-  // left padding so first card can center
-  const padLeft = document.createElement('div');
-  padLeft.style.flex = '0 0 12%';
-  padLeft.style.height = '1px';
-  customCarousel.appendChild(padLeft);
+  if(!customGrid) return;
+  customGrid.innerHTML = '';
 
   CUSTOM_GAMES.forEach((g, idx)=>{
     const el = document.createElement('div');
@@ -936,21 +860,13 @@ function renderCustomGames(){
         longPressTriggered = false;
         return;
       }
-      if(idx === customCenterIndex){
-        activateCustomShortcut(idx);
-      }else{
-        scrollCustomToIndex(idx);
-      }
+      activateCustomShortcut(idx);
     });
 
     el.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
-        if(idx === customCenterIndex){
-          activateCustomShortcut(idx);
-        }else{
-          scrollCustomToIndex(idx);
-        }
+        activateCustomShortcut(idx);
       }
     });
 
@@ -985,11 +901,9 @@ function renderCustomGames(){
       e.stopPropagation();
       openCustomCreateModal(idx, 'shortcut');
     });
-    customCarousel.appendChild(el);
-    customCards.push(el);
+    customGrid.appendChild(el);
   });
 
-  // add-card behaves like a full card at the end (for shortcuts)
   const addCard = document.createElement('button');
   addCard.type = 'button';
   addCard.className = 'card';
@@ -997,26 +911,12 @@ function renderCustomGames(){
     <div class="card-label" style="width:100%;display:flex;align-items:center;justify-content:center;font-size:32px;">+</div>
   `;
   addCard.addEventListener('click', handleAddCustomShortcut);
-  customCarousel.appendChild(addCard);
-  // include add-card in the customCards array so it appears in the dot-and-line selector
-  customCards.push(addCard);
+  customGrid.appendChild(addCard);
 
-  // right padding so last card can center
-  const padRight = document.createElement('div');
-  padRight.style.flex = '0 0 12%';
-  padRight.style.height = '1px';
-  customCarousel.appendChild(padRight);
-
-  buildCustomPositionRail();
-
-  // initial center index for custom carousel
-  if(customCards.length > 0){
-    requestAnimationFrame(()=> scrollCustomToIndex(customCenterIndex || 0, false));
-  }else{
-    customCenterIndex = 0;
-    if(customPrevBtn) customPrevBtn.disabled = true;
-    if(customNextBtn) customNextBtn.disabled = true;
-  }
+  customCarouselIndex = 0;
+  requestAnimationFrame(()=>{
+    setTimeout(updateCustomCarouselCenter, 50);
+  });
 }
 
 function handleAddCustomGame(){
@@ -1440,7 +1340,7 @@ function openReorderModal(context){
       reorderListEl.appendChild(empty);
     }
     reorderTitle.textContent = 'Reorder shortcuts';
-    reorderSubtitle.textContent = 'Order in the shortcuts carousel';
+    reorderSubtitle.textContent = 'Order in the shortcuts grid';
   }
 
   reorderOverlay.classList.add('open');
@@ -1712,48 +1612,62 @@ function addCustomToolRow(label = '', href = ''){
   customToolsListEl.appendChild(row);
 }
 
-function scrollCustomToIndex(i, smooth=true){
-  const target = customCards[i];
-  if(!target) return;
-  const rect = target.getBoundingClientRect();
-  const wrapRect = customCarousel.getBoundingClientRect();
-  const offset = (rect.left + rect.right)/2 - (wrapRect.left + wrapRect.right)/2;
-  customCarousel.scrollBy({left: offset, behavior: smooth ? 'smooth' : 'auto'});
-  setTimeout(()=> updateCustomCenter(), smooth ? 260 : 0);
-}
-
-function updateCustomCenter(){
-  if(!customCards.length) return;
-  const wrapRect = customCarousel.getBoundingClientRect();
-  const centerX = (wrapRect.left + wrapRect.right) / 2;
-  let best = {idx:0,dist:Infinity};
-  customCards.forEach((c, i)=>{
-    const r = c.getBoundingClientRect();
-    const cx = (r.left + r.right)/2;
-    const d = Math.abs(cx - centerX);
-    if(d < best.dist){ best = {idx:i,dist:d}; }
-    c.classList.remove('center','shrink');
-  });
-  customCenterIndex = best.idx;
-  customCards.forEach((c,i)=>{
-    if(i === customCenterIndex) c.classList.add('center');
-    else c.classList.add('shrink');
-  });
-  
-  updateCustomRailActive();
-  
-  if(customPrevBtn) customPrevBtn.disabled = customCenterIndex === 0;
-  if(customNextBtn) customNextBtn.disabled = customCenterIndex === customCards.length - 1;
-}
-
-// Hook interactions: buttons, scroll, keyboard, touch drag inertia handled by browser
 function hookEvents(){
-  prevBtn.addEventListener('click', ()=> scrollToIndex(Math.max(0, centerIndex - 1)));
-  nextBtn.addEventListener('click', ()=> scrollToIndex(Math.min(cards.length - 1, centerIndex + 1)));
-
   if(mainReorderBtn){
     mainReorderBtn.addEventListener('click', ()=>{
       openReorderModal('featured');
+    });
+  }
+  if(mainPrevBtn && mainViewport){
+    mainPrevBtn.addEventListener('click', ()=>{
+      const n = mainGrid ? mainGrid.querySelectorAll('.card').length : 0;
+      if(n === 0) return;
+      mainCarouselIndex = (mainCarouselIndex - 1 + n) % n;
+      scrollMainToIndex(mainCarouselIndex);
+    });
+  }
+  if(mainNextBtn && mainViewport){
+    mainNextBtn.addEventListener('click', ()=>{
+      const n = mainGrid ? mainGrid.querySelectorAll('.card').length : 0;
+      if(n === 0) return;
+      mainCarouselIndex = (mainCarouselIndex + 1) % n;
+      scrollMainToIndex(mainCarouselIndex);
+    });
+  }
+  if(mainViewport){
+    let mainScrollT;
+    mainViewport.addEventListener('scroll', ()=>{
+      if(mainScrollT) clearTimeout(mainScrollT);
+      mainScrollT = setTimeout(updateMainCarouselCenter, 80);
+    }, {passive:true});
+    setupCarouselFollowFocus(mainViewport, ()=>mainGrid, updateMainCarouselCenter, (i)=>{ mainCarouselIndex = i; });
+  }
+  if(customViewport){
+    let customScrollT;
+    customViewport.addEventListener('scroll', ()=>{
+      if(customScrollT) clearTimeout(customScrollT);
+      customScrollT = setTimeout(updateCustomCarouselCenter, 80);
+    }, {passive:true});
+    setupCarouselFollowFocus(customViewport, ()=>customGrid, updateCustomCarouselCenter, (i)=>{ customCarouselIndex = i; });
+  }
+  window.addEventListener('resize', ()=>{
+    updateMainCarouselCenter();
+    updateCustomCarouselCenter();
+  });
+  if(customPrevBtn && customViewport){
+    customPrevBtn.addEventListener('click', ()=>{
+      const n = customGrid ? customGrid.querySelectorAll('.card').length : 0;
+      if(n === 0) return;
+      customCarouselIndex = (customCarouselIndex - 1 + n) % n;
+      scrollCustomToIndex(customCarouselIndex);
+    });
+  }
+  if(customNextBtn && customViewport){
+    customNextBtn.addEventListener('click', ()=>{
+      const n = customGrid ? customGrid.querySelectorAll('.card').length : 0;
+      if(n === 0) return;
+      customCarouselIndex = (customCarouselIndex + 1) % n;
+      scrollCustomToIndex(customCarouselIndex);
     });
   }
   if(customReorderBtn){
@@ -1847,37 +1761,6 @@ function hookEvents(){
       }
     });
   }
-  if(customPrevBtn){
-    customPrevBtn.addEventListener('click', ()=> scrollCustomToIndex(Math.max(0, customCenterIndex - 1)));
-  }
-  if(customNextBtn){
-    customNextBtn.addEventListener('click', ()=> scrollCustomToIndex(Math.min(customCards.length - 1, customCenterIndex + 1)));
-  }
-
-  // on scroll, debounce updateCenter
-  let t;
-  carousel.addEventListener('scroll', ()=>{
-    if(t) clearTimeout(t);
-    t = setTimeout(updateCenter, 80);
-  }, {passive:true});
-
-  let tCustom;
-  customCarousel.addEventListener('scroll', ()=>{
-    if(tCustom) clearTimeout(tCustom);
-    tCustom = setTimeout(updateCustomCenter, 80);
-  }, {passive:true});
-
-  // keyboard left/right (desktop)
-  carousel.addEventListener('keydown', (e)=>{
-    if(e.key === 'ArrowRight') nextBtn.click();
-    if(e.key === 'ArrowLeft') prevBtn.click();
-  });
-
-  customCarousel.addEventListener('keydown', (e)=>{
-    if(e.key === 'ArrowRight' && customNextBtn) customNextBtn.click();
-    if(e.key === 'ArrowLeft' && customPrevBtn) customPrevBtn.click();
-  });
-
   // tools overlay interactions
   toolsCloseBtn.addEventListener('click', ()=>{
     if(toolsOpen){
@@ -2330,49 +2213,6 @@ function hookEvents(){
     });
   }
 
-  // swipe gestures: quick flick to next/prev
-  let startX=0,startTime=0;
-  carousel.addEventListener('touchstart', (e)=>{
-    if(e.touches.length===1){
-      startX = e.touches[0].clientX;
-      startTime = Date.now();
-    }
-  }, {passive:true});
-  carousel.addEventListener('touchend', (e)=>{
-    const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
-    const dt = Date.now() - startTime;
-    const dx = endX - startX;
-    if(Math.abs(dx) > 30 && dt < 350){
-      if(dx < 0) scrollToIndex(Math.min(cards.length - 1, centerIndex + 1));
-      else scrollToIndex(Math.max(0, centerIndex - 1));
-    }
-  }, {passive:true});
-
-  let customStartX=0, customStartTime=0;
-  customCarousel.addEventListener('touchstart', (e)=>{
-    if(e.touches.length===1){
-      customStartX = e.touches[0].clientX;
-      customStartTime = Date.now();
-    }
-  }, {passive:true});
-  customCarousel.addEventListener('touchend', (e)=>{
-    const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : customStartX;
-    const dt = Date.now() - customStartTime;
-    const dx = endX - customStartX;
-    if(Math.abs(dx) > 30 && dt < 350){
-      if(dx < 0) scrollCustomToIndex(Math.min(customCards.length - 1, customCenterIndex + 1));
-      else scrollCustomToIndex(Math.max(0, customCenterIndex - 1));
-    }
-  }, {passive:true});
-
-  // resize -> re-evaluate center after layout change
-  window.addEventListener('resize', ()=> {
-    setTimeout(()=> {
-      updateCenter();
-      updateCustomCenter();
-    }, 120);
-  });
-
   // global button/clickable control sound feedback
   document.addEventListener('click', (e)=>{
     const target = e.target.closest('button,[role="button"],a.tool-link');
@@ -2595,6 +2435,36 @@ function updateBgmState(){
 }
 updateBgmState();
 
+// Dark mode toggle
+const DARK_THEME_KEY = 'gameDeckDarkThemeV1';
+function applyDarkTheme(dark){
+  if(dark){
+    document.body.setAttribute('data-theme', 'dark');
+  }else{
+    document.body.removeAttribute('data-theme');
+  }
+  try{ localStorage.setItem(DARK_THEME_KEY, dark ? '1' : '0'); }catch(e){}
+}
+let isDarkTheme = false;
+try{ isDarkTheme = localStorage.getItem(DARK_THEME_KEY) === '1'; }catch(e){}
+applyDarkTheme(isDarkTheme);
+
+if(headerActions){
+  const darkBtn = document.createElement('button');
+  darkBtn.type = 'button';
+  darkBtn.className = 'pill-btn';
+  darkBtn.setAttribute('aria-label', isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode');
+  darkBtn.textContent = isDarkTheme ? '☀' : '🌙';
+  darkBtn.style.minWidth = '40px';
+  darkBtn.addEventListener('click', ()=>{
+    isDarkTheme = !isDarkTheme;
+    applyDarkTheme(isDarkTheme);
+    darkBtn.textContent = isDarkTheme ? '☀' : '🌙';
+    darkBtn.setAttribute('aria-label', isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode');
+  });
+  headerActions.appendChild(darkBtn);
+}
+
 // Inject BGM toggle button
 if(headerActions){
   const bgmBtn = document.createElement('button');
@@ -2629,7 +2499,7 @@ if (marketplaceContainer) {
   cardMakerBtn.id = 'card-maker-open';
   cardMakerBtn.textContent = 'Card Maker';
   cardMakerBtn.addEventListener('click', () => {
-    window.open('https://justaleks0.github.io/Game-Deck-Card-Maker/', '_blank', 'noopener');
+    window.location.href = 'card maker.html';
   });
   marketplaceContainer.appendChild(cardMakerBtn);
 }
