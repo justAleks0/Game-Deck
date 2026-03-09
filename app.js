@@ -2800,6 +2800,11 @@ function getCurrentGithubList(){
   return githubMarketplace.games || [];
 }
 
+function showMarketplaceLoading(){
+  if(!marketplaceList) return;
+  marketplaceList.innerHTML = '<div class="marketplace-loading"><div class="marketplace-spinner" aria-hidden="true"></div><span>Loading from GitHub…</span></div>';
+}
+
 function renderMarketplaceRecords(){
   if(!marketplaceList) return;
   const list = getCurrentGithubList();
@@ -3027,8 +3032,10 @@ function openMarketplace(){
 
   // Lazy-load GitHub data
   if(marketplaceFilter === 'games' && !githubMarketplace.loadedGames){
+    showMarketplaceLoading();
     loadGithubCards('games').then(renderMarketplaceRecords);
   }else if(marketplaceFilter === 'shortcuts' && !githubMarketplace.loadedShortcuts){
+    showMarketplaceLoading();
     loadGithubCards('shortcuts').then(renderMarketplaceRecords);
   }else{
     renderMarketplaceRecords();
@@ -3079,6 +3086,7 @@ if(marketplaceSearchClearBtn){
 }
 if(marketplaceRefreshBtn){
   marketplaceRefreshBtn.addEventListener('click', ()=>{
+    showMarketplaceLoading();
     if(marketplaceFilter === 'games'){
       githubMarketplace.loadedGames = false;
       githubMarketplace.games = [];
@@ -3094,6 +3102,7 @@ if(marketplaceTabGames){
   marketplaceTabGames.addEventListener('click', ()=>{
     setMarketplaceFilter('games');
     if(!githubMarketplace.loadedGames){
+      showMarketplaceLoading();
       loadGithubCards('games').then(renderMarketplaceRecords);
     }else{
       renderMarketplaceRecords();
@@ -3104,6 +3113,7 @@ if(marketplaceTabShortcuts){
   marketplaceTabShortcuts.addEventListener('click', ()=>{
     setMarketplaceFilter('shortcuts');
     if(!githubMarketplace.loadedShortcuts){
+      showMarketplaceLoading();
       loadGithubCards('shortcuts').then(renderMarketplaceRecords);
     }else{
       renderMarketplaceRecords();
