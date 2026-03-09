@@ -2629,7 +2629,7 @@ if (marketplaceContainer) {
   cardMakerBtn.id = 'card-maker-open';
   cardMakerBtn.textContent = 'Card Maker';
   cardMakerBtn.addEventListener('click', () => {
-    window.open('https://justaleks0.github.io/card-making/', '_blank', 'noopener');
+    window.open('https://justaleks0.github.io/Game-Deck-Card-Maker/', '_blank', 'noopener');
   });
   marketplaceContainer.appendChild(cardMakerBtn);
 }
