@@ -1,0 +1,23 @@
+{
+  "kind": "game",
+  "name": "Etheria: Restart",
+  "image": "https://cdn2.steamgriddb.com/thumb/057621328510852139aebd9cd0f85f4f.jpg",
+  "studio": "XD",
+  "year": 2025,
+  "description": "",
+  "instantOpenOnSingleTool": true,
+  "tools": [
+    {
+      "label": "Characters",
+      "href": "https://www.prydwen.gg/etheria-restart/characters"
+    },
+    {
+      "label": "Character Tier List",
+      "href": "https://www.prydwen.gg/etheria-restart/tier-list"
+    },
+    {
+      "label": "Teams",
+      "href": "https://www.prydwen.gg/etheria-restart/teams-database"
+    }
+  ]
+}
