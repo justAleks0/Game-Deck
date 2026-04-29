@@ -1,0 +1,39 @@
+{
+  "kind": "game",
+  "name": "Neverness To Everness",
+  "image": "https://cdn2.steamgriddb.com/thumb/7df58c72f520acb4e696d7c8e152e4fd.jpg",
+  "studio": "Hotta Studio",
+  "year": 2026,
+  "description": "",
+  "instantOpenOnSingleTool": true,
+  "tools": [
+    {
+      "label": "Characters",
+      "href": "https://www.prydwen.gg/neverness-to-everness/characters"
+    },
+    {
+      "label": "Arcs",
+      "href": "https://www.prydwen.gg/neverness-to-everness/arcs"
+    },
+    {
+      "label": "Cartridges",
+      "href": "https://www.prydwen.gg/neverness-to-everness/guides/modules-cartridge"
+    },
+    {
+      "label": "Character Tier List",
+      "href": "https://www.prydwen.gg/neverness-to-everness/tier-list"
+    },
+    {
+      "label": "Team Tier List",
+      "href": "https://www.prydwen.gg/neverness-to-everness/team-tier-list"
+    },
+    {
+      "label": "Team Builder",
+      "href": "https://www.prydwen.gg/neverness-to-everness/team-builder/"
+    },
+    {
+      "label": "Codes",
+      "href": "https://www.prydwen.gg/neverness-to-everness/codes"
+    }
+  ]
+}
